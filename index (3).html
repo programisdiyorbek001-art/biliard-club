@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bilyard Klub — Boshqaruv paneli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10201A;
+    --bg-2: #142A22;
+    --felt: #1D3B2E;
+    --felt-light: #24503C;
+    --surface: #1A2E25;
+    --surface-2: #21392D;
+    --line: #2E4C3C;
+    --ivory: #F3EFE3;
+    --sage: #93AB9B;
+    --sage-dim: #6C8577;
+    --brass: #CBA135;
+    --brass-dim: #8E7326;
+    --red: #D6584A;
+    --red-dim: #7A2E27;
+    --amber: #E0954A;
+    --radius: 10px;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top left, rgba(203,161,53,0.06), transparent 45%),
+      radial-gradient(ellipse at bottom right, rgba(36,80,60,0.35), transparent 55%),
+      var(--bg);
+    color:var(--ivory);
+    font-family: var(--font-display);
+    min-height:100vh;
+  }
+  ::selection{ background: var(--brass); color:#10201A; }
+
+  /* ---------- HEADER ---------- */
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 28px;
+    border-bottom:1px solid var(--line);
+    background: linear-gradient(180deg, rgba(20,42,34,0.9), rgba(20,42,34,0.5));
+    position:sticky; top:0; z-index:20;
+    backdrop-filter: blur(6px);
+    flex-wrap:wrap; gap:12px;
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{
+    width:38px;height:38px;border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #fff8, transparent 40%), radial-gradient(circle at 60% 65%, var(--brass), #8b6f1f 70%);
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.25);
+    position:relative;
+  }
+  .brand-mark::after{content:"8"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:800; font-size:13px; color:#1a1305;}
+  .brand h1{ font-size:19px; margin:0; letter-spacing:0.3px; font-weight:700;}
+  .brand span{ display:block; font-size:11px; color:var(--sage-dim); font-family:var(--font-mono); letter-spacing:1px; text-transform:uppercase;}
+  .header-right{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  #clock{
+    font-family:var(--font-mono); font-size:15px; color:var(--brass);
+    background: var(--surface); border:1px solid var(--line); border-radius:8px; padding:8px 12px;
+    letter-spacing:1px;
+  }
+  .btn{
+    font-family: var(--font-display); font-weight:600; font-size:13.5px;
+    border:1px solid var(--line); background:var(--surface-2); color:var(--ivory);
+    padding:9px 15px; border-radius:8px; cursor:pointer; transition:.15s ease;
+    display:inline-flex; align-items:center; gap:7px;
+  }
+  .btn:hover{ border-color:var(--brass-dim); background:var(--felt-light); }
+  .btn.primary{ background: var(--brass); color:#20180a; border-color:var(--brass); }
+  .btn.primary:hover{ background:#dcb245; }
+  .btn.ghost{ background:transparent; }
+  .btn.small{ padding:6px 11px; font-size:12px; }
+  .btn.danger{ border-color:var(--red-dim); color:#f2b3ac; }
+  .btn.danger:hover{ background: var(--red-dim); }
+
+  main{ max-width:1320px; margin:0 auto; padding:26px 28px 80px; }
+
+  .section-title{
+    display:flex; align-items:baseline; gap:10px; margin: 6px 0 16px;
+  }
+  .section-title h2{ font-size:15px; text-transform:uppercase; letter-spacing:1.6px; color:var(--sage); margin:0; font-weight:600;}
+  .section-title .count{ font-family:var(--font-mono); color:var(--brass-dim); font-size:12px; }
+  .section-title::after{ content:""; flex:1; height:1px; background:var(--line); }
+
+  /* ---------- TABLE GRID ---------- */
+  .grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap:16px;
+    margin-bottom:38px;
+  }
+  .card{
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    padding:16px;
+    position:relative;
+    overflow:hidden;
+    transition: border-color .2s ease, transform .15s ease;
+    min-height:150px;
+    display:flex; flex-direction:column;
+  }
+  .card.free{
+    background: repeating-linear-gradient(135deg, var(--surface) 0 14px, var(--surface-2) 14px 28px);
+    cursor:pointer;
+    justify-content:center; align-items:center; text-align:center; gap:8px;
+    border-style:dashed;
+  }
+  .card.free:hover{ border-color:var(--brass-dim); transform:translateY(-2px); }
+  .card.free .plus{ font-size:26px; color:var(--sage-dim); font-family:var(--font-mono); }
+  .card.free .tname{ font-weight:600; font-size:15px; }
+  .card.free .tprice{ font-size:11.5px; color:var(--sage-dim); font-family:var(--font-mono); }
+
+  .card.busy{ border-color: var(--felt-light); background: linear-gradient(160deg, var(--felt) 0%, var(--surface) 70%); }
+  .card.busy.vip{ border-color: var(--brass-dim); box-shadow: 0 0 0 1px rgba(203,161,53,0.15) inset; }
+  .card.busy.warn{ border-color: var(--red); animation: pulseWarn 1.4s ease-in-out infinite; }
+  @keyframes pulseWarn{
+    0%,100%{ box-shadow: 0 0 0 0 rgba(214,88,74,0.0); }
+    50%{ box-shadow: 0 0 0 6px rgba(214,88,74,0.12); }
+  }
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+  .tname-row{ display:flex; align-items:center; gap:6px; }
+  .tname-row .tname{ font-weight:700; font-size:15px; }
+  .badge-vip{
+    font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.5px; color:#20180a;
+    background:var(--brass); padding:2px 6px; border-radius:4px; font-weight:700;
+  }
+  .badge-plan{
+    font-family:var(--font-mono); font-size:9.5px; color:var(--sage); border:1px solid var(--line); padding:2px 6px; border-radius:4px;
+  }
+  .cust{ font-size:13.5px; color:var(--sage); margin-bottom:2px; }
+  .cust b{ color:var(--ivory); font-weight:600; }
+  .phone{ font-size:11.5px; color:var(--sage-dim); font-family:var(--font-mono); margin-bottom:10px; }
+
+  .scoreboard{
+    background:#0C1712; border:1px solid var(--line); border-radius:8px;
+    padding:10px 12px; margin-bottom:10px;
+  }
+  .timer{
+    font-family:var(--font-mono); font-size:26px; font-weight:700; color:var(--ivory);
+    letter-spacing:1px; line-height:1;
+  }
+  .warn .timer{ color:var(--red); }
+  .sub-row{ display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+  .amount{ font-family:var(--font-mono); font-size:16px; color:var(--brass); font-weight:700; }
+  .started-at{ font-family:var(--font-mono); font-size:10.5px; color:var(--sage-dim); }
+  .warn-text{ font-size:11px; color:var(--red); font-family:var(--font-mono); margin-top:4px; display:flex; align-items:center; gap:5px; }
+
+  .card-actions{ margin-top:auto; display:flex; gap:8px; padding-top:6px; }
+  .card-actions .btn{ flex:1; justify-content:center; }
+
+  /* ---------- BOOKINGS ---------- */
+  .bookings-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:38px; }
+  .booking-row{
+    display:flex; align-items:center; gap:14px;
+    background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:11px 14px;
+    flex-wrap:wrap;
+  }
+  .booking-row.due{ border-color: var(--brass-dim); background: linear-gradient(90deg, rgba(203,161,53,0.08), transparent); }
+  .booking-time{ font-family:var(--font-mono); font-weight:700; color:var(--brass); font-size:15px; min-width:64px; }
+  .booking-info{ flex:1; min-width:160px; }
+  .booking-info b{ font-size:14px; }
+  .booking-info .meta{ font-size:11.5px; color:var(--sage-dim); font-family:var(--font-mono); }
+  .empty-note{ color:var(--sage-dim); font-size:13px; padding:16px; text-align:center; border:1px dashed var(--line); border-radius:8px; }
+
+  /* ---------- REPORT ---------- */
+  .report-wrap{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px; }
+  table.report{ width:100%; border-collapse:collapse; font-size:13px; }
+  table.report th{ text-align:left; font-family:var(--font-mono); text-transform:uppercase; font-size:10.5px; letter-spacing:0.6px; color:var(--sage-dim); border-bottom:1px solid var(--line); padding:8px 6px; }
+  table.report td{ padding:9px 6px; border-bottom:1px solid rgba(255,255,255,0.04); }
+  table.report tr:last-child td{ border-bottom:none; }
+  .report-total{ display:flex; justify-content:flex-end; gap:20px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line); font-family:var(--font-mono); }
+  .report-total .val{ color:var(--brass); font-weight:700; font-size:17px; }
+
+  /* ---------- MODAL ---------- */
+  .overlay{ position:fixed; inset:0; background:rgba(6,12,9,0.72); backdrop-filter:blur(3px); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; }
+  .overlay.open{ display:flex; }
+  .modal{ background:var(--bg-2); border:1px solid var(--line); border-radius:14px; padding:22px; width:100%; max-width:420px; max-height:90vh; overflow-y:auto; }
+  .modal h3{ margin:0 0 16px; font-size:17px; }
+  .field{ margin-bottom:13px; }
+  .field label{ display:block; font-size:11.5px; color:var(--sage); margin-bottom:5px; font-family:var(--font-mono); letter-spacing:0.4px; text-transform:uppercase; }
+  .field input, .field select{
+    width:100%; background:var(--surface); border:1px solid var(--line); color:var(--ivory);
+    padding:10px 11px; border-radius:7px; font-family:var(--font-display); font-size:14px;
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--brass-dim); }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .plan-toggle{ display:flex; gap:8px; }
+  .plan-toggle button{ flex:1; padding:10px; border-radius:7px; border:1px solid var(--line); background:var(--surface); color:var(--sage); cursor:pointer; font-family:var(--font-mono); font-size:12px; }
+  .plan-toggle button.active{ background:var(--brass); color:#20180a; border-color:var(--brass); font-weight:700; }
+  .quick-durations{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .quick-durations button{ padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--surface); color:var(--sage); cursor:pointer; font-family:var(--font-mono); font-size:11.5px; }
+  .quick-durations button.active{ background:var(--brass-dim); color:var(--ivory); border-color:var(--brass-dim); }
+  .modal-actions{ display:flex; gap:10px; margin-top:18px; }
+  .modal-actions .btn{ flex:1; justify-content:center; }
+
+  .toast-wrap{ position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:8px; z-index:200; }
+  .toast{ background:var(--surface-2); border:1px solid var(--brass-dim); color:var(--ivory); padding:12px 16px; border-radius:8px; font-size:13px; box-shadow:0 6px 18px rgba(0,0,0,0.35); animation: slideIn .2s ease; }
+  @keyframes slideIn{ from{ transform:translateX(20px); opacity:0;} to{ transform:translateX(0); opacity:1;} }
+
+  .settings-list{ display:flex; flex-direction:column; gap:10px; max-height:340px; overflow-y:auto; margin-bottom:14px; }
+  .settings-row{ display:grid; grid-template-columns:1fr 90px 70px 30px; gap:6px; align-items:center; }
+  .settings-row input[type=text]{ padding:8px 9px; font-size:13px; }
+  .settings-row input[type=number]{ padding:8px 9px; font-size:13px; }
+  .settings-row .vipchk{ display:flex; align-items:center; justify-content:center; gap:4px; font-size:10px; color:var(--sage); font-family:var(--font-mono); }
+  .settings-row .rm{ background:none; border:none; color:var(--red); cursor:pointer; font-size:16px; }
+
+  footer{ text-align:center; padding:30px; color:var(--sage-dim); font-size:12px; font-family:var(--font-mono); }
+
+  @media print{
+    header, .no-print, .grid, .bookings-list, .section-title{ display:none !important; }
+    body{ background:#fff; color:#000; }
+    #reportSection{ display:block !important; }
+    .report-wrap{ border:none; background:#fff; color:#000; }
+    table.report th{ color:#333; border-color:#999; }
+    table.report td{ border-color:#ccc; color:#000; }
+    .report-total .val{ color:#000; }
+    main{ padding:0; max-width:100%; }
+  }
+  #reportSection.hidden-screen{ display:none; }
+  @media (max-width:640px){
+    .settings-row{ grid-template-columns:1fr 70px 55px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <h1 id="clubName">Bilyard Klub</h1>
+      <span>boshqaruv paneli</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div id="clock">--:--:--</div>
+    <button class="btn ghost" id="btnSettings">⚙ Sozlamalar</button>
+    <button class="btn" id="btnBooking">+ Bron qilish</button>
+    <button class="btn primary" id="btnPrint">🖨 Kunlik jadval</button>
+  </div>
+</header>
+
+<main>
+
+  <div class="section-title"><h2>Stollar</h2><span class="count" id="tableCount"></span></div>
+  <div class="grid" id="tableGrid"></div>
+
+  <div class="section-title"><h2>Bugungi bronlar</h2><span class="count" id="bookingCount"></span></div>
+  <div class="bookings-list" id="bookingsList"></div>
+
+  <div id="reportSection" class="hidden-screen">
+    <div class="section-title"><h2 id="reportTitle">Kunlik hisobot</h2></div>
+    <div class="report-wrap">
+      <table class="report">
+        <thead>
+          <tr><th>Stol</th><th>Mijoz</th><th>Boshlandi</th><th>Tugadi</th><th>Davomiyligi</th><th>Summasi</th></tr>
+        </thead>
+        <tbody id="reportBody"></tbody>
+      </table>
+      <div class="report-total">
+        <div>Jami mijozlar: <span class="val" id="reportCount">0</span></div>
+        <div>Jami summa: <span class="val" id="reportTotal">0</span> so'm</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>Bilyard Klub · real vaqtli hisoblash tizimi</footer>
+
+<!-- MODAL: START SESSION -->
+<div class="overlay" id="overlayStart">
+  <div class="modal">
+    <h3 id="startModalTitle">Mijoz qo'shish</h3>
+    <div class="field"><label>Mijoz ismi</label><input type="text" id="startName" placeholder="Masalan: Sardor"></div>
+    <div class="field"><label>Telefon raqami (ixtiyoriy)</label><input type="text" id="startPhone" placeholder="+998 90 123 45 67"></div>
+    <div class="field">
+      <label>O'yin turi</label>
+      <div class="plan-toggle">
+        <button type="button" id="planOpenBtn" class="active">Ochiq (vaqt bo'yicha)</button>
+        <button type="button" id="planFixedBtn">Belgilangan vaqt</button>
+      </div>
+    </div>
+    <div class="field" id="fixedDurationField" style="display:none;">
+      <label>Davomiyligi (daqiqa)</label>
+      <input type="number" id="startDuration" min="5" step="5" value="60">
+      <div class="quick-durations" id="quickDurations">
+        <button type="button" data-min="30">30 daq</button>
+        <button type="button" data-min="60" class="active">1 soat</button>
+        <button type="button" data-min="90">1.5 soat</button>
+        <button type="button" data-min="120">2 soat</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="cancelStart">Bekor qilish</button>
+      <button class="btn primary" id="confirmStart">Boshlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: BOOKING -->
+<div class="overlay" id="overlayBooking">
+  <div class="modal">
+    <h3>Oldindan bron qilish</h3>
+    <div class="field"><label>Mijoz ismi</label><input type="text" id="bkName" placeholder="Ism"></div>
+    <div class="field"><label>Telefon raqami</label><input type="text" id="bkPhone" placeholder="+998 90 123 45 67"></div>
+    <div class="row2">
+      <div class="field"><label>Sana</label><input type="date" id="bkDate"></div>
+      <div class="field"><label>Soat</label><input type="time" id="bkTime"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Davomiyligi (soat)</label><input type="number" id="bkDuration" min="0.5" step="0.5" value="1"></div>
+      <div class="field"><label>Stol</label><select id="bkTable"></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="cancelBooking">Bekor qilish</button>
+      <button class="btn primary" id="confirmBooking">Bron qilish</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SETTINGS -->
+<div class="overlay" id="overlaySettings">
+  <div class="modal" style="max-width:460px;">
+    <h3>Sozlamalar</h3>
+    <div class="field"><label>Klub nomi</label><input type="text" id="setClubName"></div>
+    <div class="field">
+      <label>Stollar</label>
+      <div class="settings-row" style="color:var(--sage-dim); font-family:var(--font-mono); font-size:10px;">
+        <div>NOMI</div><div>NARX/SOAT</div><div>VIP</div><div></div>
+      </div>
+      <div class="settings-list" id="settingsList"></div>
+      <button class="btn small" id="addTableBtn">+ Stol qo'shish</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="cancelSettings">Yopish</button>
+      <button class="btn primary" id="saveSettings">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+(function(){
+  const STORE_KEY = 'billiard-club-data-v1';
+
+  let data = {
+    settings: {
+      clubName: 'Bilyard Klub',
+      tables: [
+        {id:'t1', name:'Stol 1', vip:false, price:40000},
+        {id:'t2', name:'Stol 2', vip:false, price:40000},
+        {id:'t5', name:'VIP zal 1', vip:true, price:40000},
+        {id:'t6', name:'VIP zal 2', vip:true, price:40000},
+      ]
+    },
+    sessions: {},   // tableId -> {name, phone, start, plan, plannedMinutes}
+    history: [],    // {tableId, tableName, name, start, end, amount, date}
+    bookings: []    // {id, name, phone, date, time, duration, tableId}
+  };
+
+  let activeStartTableId = null;
+  let startPlan = 'open';
+
+  function fmtMoney(n){
+    return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  }
+  function pad(n){ return n.toString().padStart(2,'0'); }
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  }
+  function toast(msg){
+    const wrap = document.getElementById('toastWrap');
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    wrap.appendChild(el);
+    setTimeout(()=> el.remove(), 3500);
+  }
+
+  function save(){
+    try{
+      localStorage.setItem(STORE_KEY, JSON.stringify(data));
+    }catch(e){
+      console.error('Saqlashda xatolik', e);
+      toast('Ma\'lumotlarni saqlashda xatolik yuz berdi');
+    }
+  }
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        data = Object.assign(data, parsed);
+      }
+    }catch(e){
+      console.error('Yuklashda xatolik', e);
+    }
+  }
+
+  function tableById(id){ return data.settings.tables.find(t=>t.id===id); }
+
+  // ---------------- CLOCK ----------------
+  function tickClock(){
+    const d = new Date();
+    document.getElementById('clock').textContent = pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  }
+
+  // ---------------- RENDER: TABLES ----------------
+  function elapsedParts(startTs){
+    const ms = Date.now() - startTs;
+    const totalSec = Math.max(0, Math.floor(ms/1000));
+    const h = Math.floor(totalSec/3600);
+    const m = Math.floor((totalSec%3600)/60);
+    const s = totalSec%60;
+    return {h,m,s, totalMin: totalSec/60};
+  }
+
+  function renderTables(){
+    const grid = document.getElementById('tableGrid');
+    grid.innerHTML = '';
+    document.getElementById('tableCount').textContent = data.settings.tables.length + ' ta';
+
+    data.settings.tables.forEach(t=>{
+      const session = data.sessions[t.id];
+      const card = document.createElement('div');
+
+      if(!session){
+        card.className = 'card free';
+        card.innerHTML = `
+          <div class="plus">+</div>
+          <div class="tname">${t.name}</div>
+          <div class="tprice">${fmtMoney(t.price)} so'm / soat ${t.vip? '· VIP':''}</div>
+        `;
+        card.onclick = ()=> openStartModal(t.id);
+        grid.appendChild(card);
+        return;
+      }
+
+      const ep = elapsedParts(session.start);
+      const amount = (ep.totalMin/60) * t.price;
+      const isFixed = session.plan === 'fixed';
+      const plannedMinutes = session.plannedMinutes || 60;
+      const isWarn = isFixed && ep.totalMin >= plannedMinutes;
+      const remainingMin = isFixed ? Math.max(0, Math.ceil(plannedMinutes - ep.totalMin)) : null;
+
+      card.className = 'card busy' + (t.vip?' vip':'') + (isWarn?' warn':'');
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="tname-row">
+            <span class="tname">${t.name}</span>
+            ${t.vip?'<span class="badge-vip">VIP</span>':''}
+          </div>
+          <span class="badge-plan">${isFixed? plannedMinutes+' daq.' : 'ochiq'}</span>
+        </div>
+        <div class="cust"><b>${session.name || 'Mijoz'}</b></div>
+        ${session.phone? `<div class="phone">${session.phone}</div>` : '<div class="phone">&nbsp;</div>'}
+        <div class="scoreboard ${isWarn?'warn':''}">
+          <div class="timer">${pad(ep.h)}:${pad(ep.m)}:${pad(ep.s)}</div>
+          <div class="sub-row">
+            <span class="amount">${fmtMoney(amount)} so'm</span>
+            <span class="started-at">boshl. ${new Date(session.start).toTimeString().slice(0,5)}</span>
+          </div>
+          ${isWarn
+            ? `<div class="warn-text">⏰ Belgilangan vaqt (${plannedMinutes} daq.) tugadi — davom ettirish kerakmi?</div>`
+            : (isFixed ? `<div class="warn-text" style="color:var(--sage-dim);">⏳ Qoldi: ${remainingMin} daq.</div>` : '')
+          }
+        </div>
+        <div class="card-actions">
+          <button class="btn small danger" data-action="finish" data-id="${t.id}">Yakunlash</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  document.getElementById('tableGrid').addEventListener('click', async (e)=>{
+    const btn = e.target.closest('[data-action="finish"]');
+    if(!btn) return;
+    e.stopPropagation();
+    await finishSession(btn.dataset.id);
+  });
+
+  async function finishSession(tableId){
+    const session = data.sessions[tableId];
+    if(!session) return;
+    const t = tableById(tableId);
+    const ep = elapsedParts(session.start);
+    const amount = (ep.totalMin/60) * t.price;
+    data.history.push({
+      tableId, tableName: t.name, name: session.name || 'Mijoz', phone: session.phone||'',
+      start: session.start, end: Date.now(), amount, date: todayStr()
+    });
+    delete data.sessions[tableId];
+    await save();
+    renderAll();
+    toast(`${t.name}: ${fmtMoney(amount)} so'm hisoblandi.`);
+  }
+
+  // ---------------- START MODAL ----------------
+  function openStartModal(tableId, prefill){
+    activeStartTableId = tableId;
+    const t = tableById(tableId);
+    document.getElementById('startModalTitle').textContent = 'Mijoz qo\'shish — ' + t.name;
+    document.getElementById('startName').value = prefill?.name || '';
+    document.getElementById('startPhone').value = prefill?.phone || '';
+    document.getElementById('startDuration').value = 60;
+    setActiveQuickDuration(60);
+    setPlan('open');
+    document.getElementById('overlayStart').classList.add('open');
+    setTimeout(()=>document.getElementById('startName').focus(), 50);
+  }
+  function setPlan(p){
+    startPlan = p;
+    document.getElementById('planOpenBtn').classList.toggle('active', p==='open');
+    document.getElementById('planFixedBtn').classList.toggle('active', p==='fixed');
+    document.getElementById('fixedDurationField').style.display = p==='fixed' ? 'block' : 'none';
+  }
+  function setActiveQuickDuration(min){
+    document.querySelectorAll('#quickDurations button').forEach(b=>{
+      b.classList.toggle('active', parseInt(b.dataset.min) === min);
+    });
+  }
+  document.getElementById('planOpenBtn').onclick = ()=> setPlan('open');
+  document.getElementById('planFixedBtn').onclick = ()=> setPlan('fixed');
+  document.getElementById('cancelStart').onclick = ()=> document.getElementById('overlayStart').classList.remove('open');
+
+  document.getElementById('quickDurations').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const min = parseInt(btn.dataset.min);
+    document.getElementById('startDuration').value = min;
+    setActiveQuickDuration(min);
+  });
+  document.getElementById('startDuration').addEventListener('input', (e)=>{
+    setActiveQuickDuration(parseInt(e.target.value));
+  });
+
+  document.getElementById('confirmStart').onclick = async ()=>{
+    const name = document.getElementById('startName').value.trim();
+    if(!name){ toast('Mijoz ismini kiriting'); return; }
+    const phone = document.getElementById('startPhone').value.trim();
+    const session = { name, phone, start: Date.now(), plan: startPlan };
+    if(startPlan === 'fixed'){
+      const dur = parseFloat(document.getElementById('startDuration').value);
+      session.plannedMinutes = (dur && dur > 0) ? dur : 60;
+    }
+    data.sessions[activeStartTableId] = session;
+    document.getElementById('overlayStart').classList.remove('open');
+    await save();
+    renderAll();
+  };
+
+  // ---------------- BOOKINGS ----------------
+  function renderBookings(){
+    const list = document.getElementById('bookingsList');
+    const today = todayStr();
+    const todays = data.bookings.filter(b=>b.date===today).sort((a,b)=> a.time.localeCompare(b.time));
+    document.getElementById('bookingCount').textContent = todays.length + ' ta';
+    list.innerHTML = '';
+    if(todays.length===0){
+      list.innerHTML = '<div class="empty-note">Bugunga bron qilingan mijozlar yo\'q</div>';
+      return;
+    }
+    const now = new Date();
+    const nowMin = now.getHours()*60+now.getMinutes();
+    todays.forEach(b=>{
+      const [hh,mm] = b.time.split(':').map(Number);
+      const bMin = hh*60+mm;
+      const isDue = Math.abs(nowMin-bMin) <= 10 && nowMin <= bMin+30;
+      const t = tableById(b.tableId);
+      const row = document.createElement('div');
+      row.className = 'booking-row' + (isDue? ' due':'');
+      row.innerHTML = `
+        <div class="booking-time">${b.time}</div>
+        <div class="booking-info">
+          <b>${b.name}</b>
+          <div class="meta">${b.phone||''} · ${t?t.name:'stol tanlanmagan'} · ${b.duration} soat</div>
+        </div>
+        <button class="btn small primary" data-action="startBooking" data-id="${b.id}">Boshladi</button>
+        <button class="btn small ghost" data-action="delBooking" data-id="${b.id}">✕</button>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  document.getElementById('bookingsList').addEventListener('click', async (e)=>{
+    const startBtn = e.target.closest('[data-action="startBooking"]');
+    const delBtn = e.target.closest('[data-action="delBooking"]');
+    if(startBtn){
+      const b = data.bookings.find(x=>x.id===startBtn.dataset.id);
+      if(!b) return;
+      if(!b.tableId || data.sessions[b.tableId]){
+        toast('Iltimos, bo\'sh stol tanlang yoki mijozni to\'g\'ridan-to\'g\'ri stol ustiga bosib qo\'shing');
+        return;
+      }
+      openStartModal(b.tableId, {name:b.name, phone:b.phone});
+      data.bookings = data.bookings.filter(x=>x.id!==b.id);
+      await save();
+      renderBookings();
+    }
+    if(delBtn){
+      data.bookings = data.bookings.filter(x=>x.id!==delBtn.dataset.id);
+      await save();
+      renderBookings();
+    }
+  });
+
+  function fillBookingTableSelect(){
+    const sel = document.getElementById('bkTable');
+    sel.innerHTML = '<option value="">— tanlanmagan —</option>' +
+      data.settings.tables.map(t=>`<option value="${t.id}">${t.name}${t.vip?' (VIP)':''}</option>`).join('');
+  }
+
+  document.getElementById('btnBooking').onclick = ()=>{
+    document.getElementById('bkName').value='';
+    document.getElementById('bkPhone').value='';
+    document.getElementById('bkDate').value = todayStr();
+    document.getElementById('bkTime').value = '';
+    document.getElementById('bkDuration').value = 1;
+    fillBookingTableSelect();
+    document.getElementById('overlayBooking').classList.add('open');
+  };
+  document.getElementById('cancelBooking').onclick = ()=> document.getElementById('overlayBooking').classList.remove('open');
+  document.getElementById('confirmBooking').onclick = async ()=>{
+    const name = document.getElementById('bkName').value.trim();
+    const date = document.getElementById('bkDate').value;
+    const time = document.getElementById('bkTime').value;
+    if(!name || !date || !time){ toast('Ism, sana va soatni to\'ldiring'); return; }
+    data.bookings.push({
+      id: 'bk_'+Date.now(),
+      name, phone: document.getElementById('bkPhone').value.trim(),
+      date, time,
+      duration: parseFloat(document.getElementById('bkDuration').value) || 1,
+      tableId: document.getElementById('bkTable').value || null
+    });
+    document.getElementById('overlayBooking').classList.remove('open');
+    await save();
+    renderBookings();
+    toast('Bron qilindi: ' + name + ' — ' + time);
+  };
+
+  // ---------------- SETTINGS ----------------
+  function renderSettingsList(){
+    const wrap = document.getElementById('settingsList');
+    wrap.innerHTML = '';
+    data.settings.tables.forEach((t,i)=>{
+      const row = document.createElement('div');
+      row.className = 'settings-row';
+      row.innerHTML = `
+        <input type="text" data-i="${i}" data-f="name" value="${t.name}">
+        <input type="number" data-i="${i}" data-f="price" value="${t.price}">
+        <label class="vipchk"><input type="checkbox" data-i="${i}" data-f="vip" ${t.vip?'checked':''}> VIP</label>
+        <button class="rm" data-i="${i}">✕</button>
+      `;
+      wrap.appendChild(row);
+    });
+  }
+  document.getElementById('btnSettings').onclick = ()=>{
+    document.getElementById('setClubName').value = data.settings.clubName;
+    renderSettingsList();
+    document.getElementById('overlaySettings').classList.add('open');
+  };
+  document.getElementById('cancelSettings').onclick = ()=> document.getElementById('overlaySettings').classList.remove('open');
+  document.getElementById('addTableBtn').onclick = ()=>{
+    const n = data.settings.tables.length+1;
+    data.settings.tables.push({id:'t'+Date.now(), name:'Stol '+n, vip:false, price:40000});
+    renderSettingsList();
+  };
+  document.getElementById('settingsList').addEventListener('click', (e)=>{
+    const rm = e.target.closest('.rm');
+    if(rm){
+      const i = parseInt(rm.dataset.i);
+      const t = data.settings.tables[i];
+      if(data.sessions[t.id]){ toast('Bu stolda hozir mijoz bor, avval yakunlang'); return; }
+      data.settings.tables.splice(i,1);
+      renderSettingsList();
+    }
+  });
+  document.getElementById('settingsList').addEventListener('input', (e)=>{
+    const el = e.target;
+    const i = parseInt(el.dataset.i);
+    const f = el.dataset.f;
+    if(!data.settings.tables[i]) return;
+    if(f==='vip') data.settings.tables[i].vip = el.checked;
+    else if(f==='price') data.settings.tables[i].price = parseFloat(el.value)||0;
+    else data.settings.tables[i].name = el.value;
+  });
+  document.getElementById('saveSettings').onclick = async ()=>{
+    data.settings.clubName = document.getElementById('setClubName').value.trim() || 'Bilyard Klub';
+    document.getElementById('clubName').textContent = data.settings.clubName;
+    document.getElementById('overlaySettings').classList.remove('open');
+    await save();
+    renderAll();
+    toast('Sozlamalar saqlandi');
+  };
+
+  // ---------------- REPORT / PRINT ----------------
+  function buildReport(){
+    const today = todayStr();
+    const rows = [];
+    data.history.filter(h=>h.date===today).forEach(h=> rows.push(h));
+    // include currently active sessions as "hozirgacha"
+    Object.entries(data.sessions).forEach(([tid, s])=>{
+      const t = tableById(tid);
+      const ep = elapsedParts(s.start);
+      const amount = (ep.totalMin/60) * (t?t.price:0);
+      rows.push({tableName: t?t.name:tid, name: s.name, start: s.start, end: null, amount});
+    });
+    rows.sort((a,b)=> a.start - b.start);
+
+    const tbody = document.getElementById('reportBody');
+    tbody.innerHTML = '';
+    let total = 0;
+    rows.forEach(r=>{
+      total += r.amount;
+      const durMin = Math.round(((r.end||Date.now()) - r.start)/60000);
+      const dh = Math.floor(durMin/60), dm = durMin%60;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.tableName}</td>
+        <td>${r.name}</td>
+        <td>${new Date(r.start).toTimeString().slice(0,5)}</td>
+        <td>${r.end? new Date(r.end).toTimeString().slice(0,5) : 'davom etmoqda'}</td>
+        <td>${dh} soat ${dm} daq.</td>
+        <td>${fmtMoney(r.amount)} so'm</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('reportCount').textContent = rows.length;
+    document.getElementById('reportTotal').textContent = fmtMoney(total);
+    const d = new Date();
+    document.getElementById('reportTitle').textContent = 'Kunlik jadval — ' + d.toLocaleDateString('uz-UZ');
+  }
+
+  document.getElementById('btnPrint').onclick = ()=>{
+    buildReport();
+    document.getElementById('reportSection').classList.remove('hidden-screen');
+    setTimeout(()=>{
+      window.print();
+    }, 80);
+  };
+  window.addEventListener('afterprint', ()=>{
+    document.getElementById('reportSection').classList.add('hidden-screen');
+  });
+
+  // ---------------- MAIN LOOP ----------------
+  function renderAll(){
+    renderTables();
+    renderBookings();
+    document.getElementById('clubName').textContent = data.settings.clubName;
+  }
+
+  async function init(){
+    await load();
+    renderAll();
+    tickClock();
+    setInterval(tickClock, 1000);
+    setInterval(renderTables, 1000);
+    setInterval(renderBookings, 15000);
+  }
+  init();
+})();
+</script>
+</body>
+</html>
